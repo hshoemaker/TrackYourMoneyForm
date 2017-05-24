@@ -1,0 +1,304 @@
+﻿@*@model BillManagement.Models.DocumentFormViewModel*@
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Manage Bills</title>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        table td span.glyphicon-pencil {color: green; margin-right: 5px; cursor: pointer;}
+        table td span.glyphicon-remove {color: red; cursor: pointer;}
+        table td.editing > span {display: none;}
+        table td.editing input,
+        table td.notEditing div.input-group {display: block;}
+        table td.notEditing > span {display: inline;}
+        table td.notEditing input,
+        table td.notEditing div.input-group {display: none;}
+    </style>
+    <script src="~/Scripts/jquery-1.9.1.min.js"></script>
+    <script src="~/Scripts/angular.min.js"></script>
+    <script src="~/Scripts/angular-animate.min.js"></script>
+    <script src="~/Scripts/Main.js"></script>
+</head>
+<body>
+    <div class="container"> 
+        <div ng-app="MoneyTrackerApp" ng-controller="MoneyTrackerCtrl">
+            <h1>Balance in Checking Account is <input ng-model="ChkBal" type="number" class="form-control" /></h1>
+
+            <h2>Last 6 Debits</h2>
+            <br />
+            <form novalidate>
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                            <th>Misc Info</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="l in LastDebits" class="ld-{{l.id}}">
+                            <td class="text-center {{l.editing}}">
+                                <span ng-click="EditEntry(l)" class="glyphicon glyphicon-pencil"></span><span ng-click="RemoveEntry(l, LastDebits)" class="glyphicon glyphicon-remove"></span>
+                                <input type="submit" ng-click="DoneEditingEntry(l)" value="Done" class="btn btn-default" />
+                            </td>
+                            <td class=" {{l.editing}}">
+                                <span>{{l.Date}}</span>
+                                <div class="input-group">
+                                    <span class="input-group-addon" id="LDCalendar"><span class="glyphicon glyphicon-calendar"></span></span>
+                                    <input ng-model="l.Date" type="text" class="form-control" aria-describedby="LDCalendar" />
+                                </div>
+                                
+                            </td>
+                            <td class="{{l.editing}}">
+                                <span>${{l.Amount}}</span>
+                                <div class="input-group">
+                                    <span class="input-group-addon" id="LDDollar">$</span>
+                                    <input ng-model="l.Amount" type="text" class="form-control" aria-describedby="LDDollar" />
+                                </div>
+                                
+                            </td>
+                            <td class="{{l.editing}}">
+                                <span>{{l.Description}}</span>
+                                <input ng-model="l.Description" type="text" class="form-control" />
+                            </td>
+                            <td class="{{l.editing}}">
+                                <span>{{l.MiscInfo}}</span>
+                                <input ng-model="l.MiscInfo" type="text" class="form-control" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-center">
+                                <input type="submit" ng-click="AddLD()" class="btn btn-default" value="Add" />
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon" id="LDCalender2"><span class="glyphicon glyphicon-calendar"></span></span>
+                                    <input ng-model="LD.Date" placeholder="Date" id="LDDate" class="form-control" aria-describedby="LDCalender2" />
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon" id="LDDollar2">$</span>
+                                    <input ng-model="LD.Amount" placeholder="Amount" class="form-control" aria-describedby="LDDollar2" />
+                                </div>
+                            </td>
+                            <td>
+                                <input ng-model="LD.Description" placeholder="Description" class="form-control" />
+                            </td>
+                            <td>
+                                <input ng-model="LD.MiscInfo" placeholder="Misc" class="form-control" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
+            <br />
+            <br />
+
+            <h2>Outstanding Transactions</h2>
+            @*<div class="form-inline">
+                <div class="form-group">
+                    <input ng-model="OT.Date" placeholder="Date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <input ng-model="OT.Amount" placeholder="Amount" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <input ng-model="OT.Description" placeholder="Description" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <input ng-model="OT.MiscInfo" placeholder="Misc" class="form-control" />
+                </div>
+                <button ng-click="AddOT()" class="btn btn-default">Add</button>
+            </div>*@
+            <br />
+            <form novalidate>
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                            <th>Misc Info</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="o in OutstandingTransactions">
+                            <td class="text-center {{o.editing}}">
+                                <span ng-click="EditEntry(o)" class="glyphicon glyphicon-pencil"></span><span ng-click="RemoveEntry(o, OutstandingTransactions)" class="glyphicon glyphicon-remove"></span>
+                                <input type="submit" ng-click="DoneEditingEntry(o)" value="Done" class="btn btn-default" />
+                            </td>
+                            <td class=" {{o.editing}}">
+                                <span>{{o.Date}}</span>
+                                <div class="input-group">
+                                    <span class="input-group-addon" id="OTCalendar"><span class="glyphicon glyphicon-calendar"></span></span>
+                                    <input ng-model="o.Date" type="text" class="form-control" aria-describedby="OTCalendar" />
+                                </div>
+
+                            </td>
+                            <td class="{{o.editing}}">
+                                <span>${{o.Amount}}</span>
+                                <div class="input-group">
+                                    <span class="input-group-addon" id="OTDollar">$</span>
+                                    <input ng-model="o.Amount" type="text" class="form-control" aria-describedby="OTDollar" />
+                                </div>
+
+                            </td>
+                            <td class="{{o.editing}}">
+                                <span>{{o.Description}}</span>
+                                <input ng-model="l.Description" type="text" class="form-control" />
+                            </td>
+                            <td class="{{o.editing}}">
+                                <span>{{o.MiscInfo}}</span>
+                                <input ng-model="o.MiscInfo" type="text" class="form-control" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-center">
+                                <input type="submit" ng-click="AddOT()" class="btn btn-default" value="Add" />
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon" id="OTCalender2"><span class="glyphicon glyphicon-calendar"></span></span>
+                                    <input ng-model="OT.Date" placeholder="Date" id="OTDate" class="form-control" aria-describedby="OTCalender2" />
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon" id="OTDollar2">$</span>
+                                    <input ng-model="OT.Amount" placeholder="Amount" class="form-control" aria-describedby="OTDollar2" />
+                                </div>
+                            </td>
+                            <td>
+                                <input ng-model="OT.Description" placeholder="Description" class="form-control" />
+                            </td>
+                            <td>
+                                <input ng-model="OT.MiscInfo" placeholder="Misc" class="form-control" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
+            <br />
+            <br />
+
+            <h1>Tracking/Predicting the Cash Flow between now and next Pay Day</h1>
+            <div class="form-inline">
+                <div class="form-group">
+                    <input ng-model="CF.Date" placeholder="Date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <input ng-model="CF.Description" placeholder="Description" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <div class="input-group">
+                        <span class="input-group-btn">
+                            <button ng-repeat="x in operations" class="btn btn-default {{x.value}} {{x.selected}}" ng-click="SelectOperation(x)" type="button">{{x.sign}}</button>
+                        </span>
+                        <span class="input-group-addon">$</span>
+                        <input ng-model="CF.Amount" placeholder="Amount" class="form-control" />
+                    </div>
+                </div>
+                <button ng-click="AddCF()" class="btn btn-default">Add</button>
+            </div>
+            <br />
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>$ Left in Accrt After</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="c in CashFlow">
+                        <td>{{c.Date}}</td>
+                        <td>{{c.Description}}</td>
+                        <td>{{c.Operation}}${{abs(c.Amount)}}</td>
+                        <td>${{CalcAmtLeft(c)}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <br />
+            <br />
+
+            <h1>Assumptions</h1>
+            <div class="form-inline">
+                <div class="form-group">
+                    <input ng-model="Asp.Date" placeholder="Date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <input ng-model="Asp.Amount" placeholder="Amount" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <input ng-model="Asp.Description" placeholder="Description" class="form-control" />
+                </div>
+                <button ng-click="AddAsp()" class="btn btn-default">Add</button>
+            </div>
+            <br />
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="a in Assumptions">
+                        <td>{{a.Date}}</td>
+                        <td>${{a.Amount}}</td>
+                        <td>{{a.Description}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <br />
+            <br />
+
+            <h1>To Dos/Next Steps</h1>
+            <div class="form-inline">
+                <div class="form-group">
+                    <input ng-model="NS.Date" placeholder="Date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <input ng-model="NS.Amount" placeholder="Amount" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <input ng-model="NS.Description" placeholder="Description" class="form-control" />
+                </div>
+                <button ng-click="AddNS()" class="btn btn-default">Add</button>
+            </div>
+            <br />
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="n in NextSteps">
+                        <td>{{n.Date}}</td>
+                        <td>${{n.Amount}}</td>
+                        <td>{{n.Description}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <br />
+            <br />
+
+            <button ng-click="Finalize()" class="btn btn-default">Finalize</button>
+            <br />
+            <br />
+        </div>
+    </div>
+</body>
+</html>
